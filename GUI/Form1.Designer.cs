@@ -35,6 +35,11 @@
             this.label1 = new System.Windows.Forms.Label();
             this.thread_count = new System.Windows.Forms.NumericUpDown();
             this.time_exe = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.time = new System.Windows.Forms.Label();
+            this.textBox2 = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.thread_count)).BeginInit();
             this.SuspendLayout();
             // 
@@ -62,7 +67,7 @@
             // 
             // Run_button
             // 
-            this.Run_button.Location = new System.Drawing.Point(353, 372);
+            this.Run_button.Location = new System.Drawing.Point(435, 372);
             this.Run_button.Name = "Run_button";
             this.Run_button.Size = new System.Drawing.Size(75, 23);
             this.Run_button.TabIndex = 2;
@@ -73,7 +78,7 @@
             // textBox1
             // 
             this.textBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.textBox1.Location = new System.Drawing.Point(143, 125);
+            this.textBox1.Location = new System.Drawing.Point(55, 125);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(216, 28);
             this.textBox1.TabIndex = 3;
@@ -82,18 +87,19 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.label1.Location = new System.Drawing.Point(139, 102);
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.label1.Location = new System.Drawing.Point(52, 102);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(124, 20);
+            this.label1.Size = new System.Drawing.Size(97, 18);
             this.label1.TabIndex = 4;
-            this.label1.Text = "Matrix file path ";
+            this.label1.Text = "input file path ";
+            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // thread_count
             // 
             this.thread_count.AccessibleDescription = "liczba wątków programu";
             this.thread_count.AccessibleName = "thread count";
-            this.thread_count.Location = new System.Drawing.Point(239, 249);
+            this.thread_count.Location = new System.Drawing.Point(259, 250);
             this.thread_count.Maximum = new decimal(new int[] {
             64,
             0,
@@ -123,12 +129,64 @@
             this.time_exe.ReadOnly = true;
             this.time_exe.Size = new System.Drawing.Size(100, 22);
             this.time_exe.TabIndex = 6;
+            this.time_exe.TextChanged += new System.EventHandler(this.time_exe_TextChanged);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(291, 293);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(0, 16);
+            this.label2.TabIndex = 7;
+            // 
+            // time
+            // 
+            this.time.AutoSize = true;
+            this.time.Location = new System.Drawing.Point(120, 320);
+            this.time.Name = "time";
+            this.time.Size = new System.Drawing.Size(133, 16);
+            this.time.TabIndex = 8;
+            this.time.Text = "Czas wykonania [ms]";
+            // 
+            // textBox2
+            // 
+            this.textBox2.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.textBox2.Location = new System.Drawing.Point(294, 125);
+            this.textBox2.Name = "textBox2";
+            this.textBox2.Size = new System.Drawing.Size(216, 28);
+            this.textBox2.TabIndex = 9;
+            this.textBox2.TextChanged += new System.EventHandler(this.textBox2_TextChanged);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.label3.Location = new System.Drawing.Point(291, 102);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(107, 18);
+            this.label3.TabIndex = 10;
+            this.label3.Text = "output file path ";
+            this.label3.Click += new System.EventHandler(this.label3_Click);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(160, 256);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(89, 16);
+            this.label4.TabIndex = 11;
+            this.label4.Text = "liczba wątków";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(534, 450);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.textBox2);
+            this.Controls.Add(this.time);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.time_exe);
             this.Controls.Add(this.thread_count);
             this.Controls.Add(this.label1);
@@ -153,6 +211,11 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.NumericUpDown thread_count;
         private System.Windows.Forms.TextBox time_exe;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label time;
+        private System.Windows.Forms.TextBox textBox2;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label4;
     }
 }
 

@@ -57,6 +57,40 @@ namespace GUI
             }
         }
 
+        private void textBox2_TextChanged(object sender, EventArgs e)
+        {
+            outputPath = textBox2.Text.Trim();
+
+            if (string.IsNullOrEmpty(outputPath))
+            {
+                textBox2.BackColor = System.Drawing.Color.White; // Lub domyślny
+                return;
+            }
+
+            try
+            {
+                // 1. Pobierz ścieżkę do samego FOLDERU
+                string directoryPath = Path.GetDirectoryName(outputPath);
+
+                // 2. Sprawdź, czy folder istnieje (lub czy ścieżka jest pusta/nieprawidłowa)
+                if (!string.IsNullOrEmpty(directoryPath) && Directory.Exists(directoryPath))
+                {
+                    // Folder istnieje - wszystko jest OK
+                    textBox2.BackColor = System.Drawing.Color.LightGreen;
+                }
+                else
+                {
+                    // Folder nie istnieje - zaznacz na czerwono
+                    textBox2.BackColor = System.Drawing.Color.Salmon;
+                }
+            }
+            catch (ArgumentException)
+            {
+                // Ścieżka zawiera nieprawidłowe znaki (np. "C:\test*?.txt")
+                textBox2.BackColor = System.Drawing.Color.Salmon;
+            }
+        }
+
         private void ASM_button_CheckedChanged(object sender, EventArgs e)
         {
             //powinna byc typu bool aby sprawdzac czy jest zaznaczona
@@ -72,16 +106,41 @@ namespace GUI
 
         private void Run_button_Click(object sender, EventArgs e)
         {
+            // 1. SPRAWDZENIE KRYTYCZNE (WEJŚCIE)
             if (string.IsNullOrEmpty(inputPath) || !File.Exists(inputPath))
             {
-                MessageBox.Show("Podaj poprawną ścieżkę do pliku wejściowego.", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                MessageBox.Show(
+                    "Plik wejściowy nie istnieje lub ścieżka jest nieprawidłowa.",
+                    "Błąd krytyczny",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+                return; // PRZERWIJ! Nie idź dalej.
             }
+
+            // 2. Sprawdzenie wyjścia (folderu)
+            try
+            {
+                string outputDirectory = Path.GetDirectoryName(outputPath);
+                if (!string.IsNullOrEmpty(outputDirectory) && !Directory.Exists(outputDirectory))
+                {
+                    Directory.CreateDirectory(outputDirectory);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Nie można utworzyć katalogu wyjściowego: {ex.Message}");
+                return; // PRZERWIJ!
+            }
+
+            // 3. Jeśli wszystko jest OK - uruchom obliczenia
+            MessageBox.Show("Rozpoczynam obliczenia...");
+            //if (string.IsNullOrEmpty(inputPath) || !File.Exists(inputPath))
+            //{
+            //    MessageBox.Show("Podaj poprawną ścieżkę do pliku wejściowego.", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            //    return;
+            //}
           
-            
-           
-
-
            
             if (useAsm) {
                 P_exe.run_asm(inputPath, threadCount, outputPath);
@@ -109,5 +168,21 @@ namespace GUI
             time_exe.Text = $"czas wykonania: {milliseconds} ms";
         }
 
+        private void time_exe_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        
     }
 }
