@@ -127,7 +127,7 @@
             this.time_exe.Location = new System.Drawing.Point(259, 314);
             this.time_exe.Name = "time_exe";
             this.time_exe.ReadOnly = true;
-            this.time_exe.Size = new System.Drawing.Size(100, 22);
+            this.time_exe.Size = new System.Drawing.Size(139, 22);
             this.time_exe.TabIndex = 6;
             this.time_exe.TextChanged += new System.EventHandler(this.time_exe_TextChanged);
             // 
@@ -142,11 +142,12 @@
             // time
             // 
             this.time.AutoSize = true;
-            this.time.Location = new System.Drawing.Point(120, 320);
+            this.time.Location = new System.Drawing.Point(140, 320);
             this.time.Name = "time";
-            this.time.Size = new System.Drawing.Size(133, 16);
+            this.time.Size = new System.Drawing.Size(107, 16);
             this.time.TabIndex = 8;
-            this.time.Text = "Czas wykonania [ms]";
+            this.time.Text = "Czas wykonania:";
+            this.time.Click += new System.EventHandler(this.time_Click);
             // 
             // textBox2
             // 
