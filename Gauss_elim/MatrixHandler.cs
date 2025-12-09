@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Gauss_elim.NativeMethods;
 
-namespace Gauss_elim.MatrixHandler
+namespace Gauss_elim.MatrixHandler_ASM
 {
 
     public class MatrixHandler
@@ -15,11 +16,12 @@ namespace Gauss_elim.MatrixHandler
         public int rows { get; private set; }
         public int cols { get; private set; }
         public float[] data { get; private set; }
+        public float[] slnVector { get; private set; }
+
+        public int oldCols;
 
         int ymm = 8; // liczba wierszy przetwarzanych jednocześnie przez YMM
 
-        private int rowOffset = 0; // zmienna offset powinna wskazywac ile ymm mozna sie przesunac aby dostac aktulane dane (w przypadku resizingu)
-        private int colOffset = 0;
         public const float eps = 1.0e-5f;
         public const float EPS_ABS = 1e-6f;
         public const float EPS_REL = 1e-4f;
@@ -52,39 +54,49 @@ namespace Gauss_elim.MatrixHandler
 
                 rows++;
             }
+            Console.WriteLine($"Wczytano macierz o rozmiarze {rows}x{cols} z pliku: {path}");
 
             return (values.ToArray(), rows, cols);
         }
-        public void ZeroUntilEps(int startIndex, float pivot) //zerowanie wiersza po kazdej eliminacji i to w czesciach (wdg petli x)
-        {
-            // przechodzimy po wierszu od startIndex do startIndex + rejestr YMM (8 float)
-            for (int i = startIndex; i < startIndex + ymm; i++)
-            {
-                if (Math.Abs(data[i]) < EPS_ABS + EPS_REL * Math.Abs(pivot))
-                    data[i] = 0f;
-                
-            }
-        }
 
-       
-        
 
-        public void SaveMatrixToFile(string path)
+
+        public unsafe void SaveMatrixToFile(string output)
         {
-            using (StreamWriter writer = new StreamWriter(path, false, Encoding.UTF8))
+            using (StreamWriter writer = new StreamWriter(output, false, Encoding.UTF8))
             {
                 for (int r = 0; r < rows; r++)
                 {
                     string line = "";
-                    for (int c = 0; c < cols; c++)
+                    for (int c = 0; c < oldCols; c++)
                     {
                         // dopisujemy element z kropką jako separatorem dziesiętnym
-                        line += data[r * cols + c].ToString(System.Globalization.CultureInfo.InvariantCulture);
-                        if (c < cols - 1)
+                        line += data[r * cols + c].ToString();
+                        if (c < oldCols - 1)
                             line += " "; // separator między kolumnami
                     }
                     writer.WriteLine(line);
                 }
+            }
+            Console.WriteLine("Plik zapisano w: " + Path.GetFullPath(output));
+
+        }
+        public void SaveSlnMtrx(string path)
+        {
+            using (StreamWriter writer = new StreamWriter(path, false, Encoding.UTF8))
+            {
+
+
+                string line = "";
+                for (int r = 0; r < rows; r++)
+                {
+                    // dopisujemy element z kropką jako separatorem dziesiętnym
+                    line += slnVector[r].ToString();
+                    line += " "; // separator między kolumnami
+
+                }
+                writer.WriteLine(line);
+
             }
             Console.WriteLine("Plik zapisano w: " + Path.GetFullPath(path));
 
@@ -94,11 +106,10 @@ namespace Gauss_elim.MatrixHandler
 
         public void checkSize()
         {
-            int newCols = ymm;
-            int newRows = ymm;
+            oldCols = cols; // zapamiętujemy oryginalną liczbę kolumn
             //rommiar < 8 ??
 
-            if (cols != rows)
+            if (cols != rows + 1)
                 throw new InvalidOperationException("Macierz nie jest kwadratowa.");
 
             if (cols % ymm == 0)
@@ -107,15 +118,13 @@ namespace Gauss_elim.MatrixHandler
 
             else if (cols > ymm && cols % ymm != 0)
             {
-                newCols = (int)Math.Ceiling((double)cols / ymm) * ymm;
-                newRows = newCols;
+                cols = (int)Math.Ceiling((double)cols / ymm) * ymm;
+
             }
 
-            float[] newData = new float[newCols * newCols];
+            float[] newData = new float[cols * rows];
 
-            rowOffset = newRows - rows;
-            colOffset = rowOffset;
-
+            // 4. Skopiuj dane do LEWEGO GÓRNEGO rogu (bez offsetów!)
             unsafe
             {
                 fixed (float* src = data)
@@ -123,29 +132,39 @@ namespace Gauss_elim.MatrixHandler
                 {
                     for (int r = 0; r < rows; r++)
                     {
-                        float* srcRow = src + r * cols;
-                        float* dstRow = dst + (r + rowOffset) * newCols + colOffset;
-                        Buffer.MemoryCopy(srcRow, dstRow, cols * sizeof(float), cols * sizeof(float));
+                        // Kopiujemy wiersz po wierszu
+                        // Źródło: stary wiersz r
+                        float* srcRow = src + (r * oldCols);
+                        // Cel: nowy wiersz r (ale nowa szerokość newCols)
+                        float* dstRow = dst + (r * cols);
+
+                        // Kopiujemy tylko tyle bajtów, ile miał stary wiersz
+                        Buffer.MemoryCopy(srcRow, dstRow, cols * sizeof(float), oldCols * sizeof(float));
                     }
                 }
             }
-
             data = newData;
-            cols = newCols;
-            rows = newCols;
+
 
         }
 
 
-        public void ApplyPivot(int currentRow)
+        public void ApplyPivot(int currentCol)
         {
-            int pivotRow = currentRow;
-            float maxAbs = Math.Abs(data[currentRow * cols + currentRow]);
+            // UWAGA: Ponieważ mamy macierz rozszerzoną, pivot na przekątnej to [y, y]
+            // currentCol to nasze 'y'.
 
-            // Znajdź wiersz o największej wartości bezwzględnej w danej kolumnie
-            for (int i = currentRow + 1; i < rows; i++)
+            int pivotRow = currentCol;
+
+            // Odczytujemy wartość w aktualnym wierszu
+            // (Bez żadnych rowOffsetów!)
+            float maxAbs = Math.Abs(data[currentCol * cols + currentCol]);
+
+            // Szukamy wiersza z największym elementem
+            // Iterujemy tylko do realRows (nie wchodzimy na puste zera na dole, jeśli są)
+            for (int i = currentCol + 1; i < rows; i++)
             {
-                float val = Math.Abs(data[i * cols + currentRow]);
+                float val = Math.Abs(data[i * cols + currentCol]);
                 if (val > maxAbs)
                 {
                     maxAbs = val;
@@ -153,38 +172,28 @@ namespace Gauss_elim.MatrixHandler
                 }
             }
 
-            // zamień wiersze
-            if (pivotRow != currentRow)
+            // Sprawdzenie czy pivot nie jest zerem (osobliwość)
+            if (maxAbs < 1e-9f) return;
+
+            // Zamiana wierszy
+            if (pivotRow != currentCol)
             {
-                for (int j = 0; j < cols; j++)
+                // Zamieniamy CAŁY wiersz (aż do newCols, łącznie z paddingiem z prawej)
+                // To jest bezpieczne i szybkie (AVX lubi pełne wiersze)
+                for (int j = 0; j < oldCols; j++)
                 {
-                    float tmp = data[currentRow * cols + j];
-                    data[currentRow * cols + j] = data[pivotRow * cols + j];
+                    float tmp = data[currentCol * cols + j];
+                    data[currentCol * cols + j] = data[pivotRow * cols + j];
                     data[pivotRow * cols + j] = tmp;
                 }
             }
         }
 
 
-
-        /* do wykonania rownloeglego*/
-
-        //zerowanie tylko 1 wiersza przez watek ktory byl za nieg odpowiedzialny
-        public void ZeroUntilEps_parallel(int elim_startIdx, float pivot)
-        {
-            int i = elim_startIdx;
-            // przechodzimy po wierszu od pivota do konca tego wiersza
-            for (int j = 0; j < ymm; j++, i++)
-            {
-                if (Math.Abs(data[i]) < EPS_ABS + EPS_REL * Math.Abs(pivot))
-                    data[i] = 0f;
-
-            }
-        }
         /* do wykonania rownloeglego*/
         public void gauss_step(int n, int y)
         {
-        
+
             float pivot = data[y * cols + (y)]; //pivot
             float elim = data[(n + 1) * cols + (y)];  // elim
             float factor = elim / pivot; // 3. Oblicz współczynnik JEDEN RAZ
@@ -197,91 +206,83 @@ namespace Gauss_elim.MatrixHandler
                 unsafe
                 {
 
-                    fixed (float* rowN = &data[y * rows + x]) // const for all col elim
+                    fixed (float* rowN = &data[y * cols + x]) // const for all col elim
                     fixed (float* rowNext = &data[(n + 1) * cols + x])
 
 
                     {
-                        //zamiast 3 agr int -> array size 3 (r8 w asm)
-                        //if pivot ==0 => all row can be skiped
-                        if (data[y * cols + (y)] != 0)
-                        {
-                            NativeMethods.GaussAsm.gauss_elimination(rowN, rowNext, factor);
-                            ZeroUntilEps((n + 1) * cols + x, data[y * cols + (y)]);
+
+                        //if (data[y * cols + (y)] > EPS_ABS{ spr w petli glownej
+                        NativeMethods.import_func.gauss_elimination(rowN, rowNext, factor, Math.Abs(pivot));
 
 
-
-                        }
+                        //}
 
                     }
                 }
-                
+
             }
         }
-        /*zmienne offset do przemyslenia bo zawsze dokladamy > niz 8 wierzy i kolumn 0
-         * wtedy trzeba zaczac od rowOffset ale col =0 i zmienia sie caly algorytm...
-         */
-        /* wykonywanie eliminacji gaussa tylko dla 1 watku - metoda do tesu algorytmu */
-        public void GaussEliminationManaged()
+
+       
+        public void BackSubstitution()
         {
-            for (int y = 0; y < cols - 1; y++)
+            // slnVector to tablica na wyniki 'x' (rozmiar N)
+            slnVector = new float[rows];
+
+            unsafe
             {
-                //zawsze pivoting
-                ApplyPivot(y);
-                float pivot = data[y * cols + (y)];
-   
-             
-
-                for (int n = y; n < rows - 1; n++) // kazde n wiersz dla innega watku
+                fixed (float* mtrxPtr = data)
+                fixed (float* slnPtr = slnVector)
                 {
-                    float elim = data[(n + 1) * cols + (y)]; // element do eliminacji z rowNext
-                    float factor = elim / pivot; // 3. Oblicz współczynnik JEDEN RAZ
-
-                    //dzielenie wiersza na czesci po 8 float 
-                    for (int x = 0; x < cols; x += ymm)
+                    // Pętla od ostatniego wiersza w górę
+                    for (int i = rows - 1; i >= 0; i--)
                     {
+                        // 1. Przygotuj dane dla ASM
+                        // Chcemy sumować elementy od kolumny (i + 1) do końca
+                        int startCol = i + 1;
+                        int count = rows - (startCol); // Ile liczb przemnożyć
 
-                        Console.WriteLine($"[{y},{n}] elim={elim}, pivot={pivot}");
+                        float sum = 0.0f;
 
-
-                        unsafe
+                        if (count > 0)
                         {
-                           
+                            // Wskaźnik na start danych w wierszu macierzy
+                            float* rowSegment = mtrxPtr + (i * cols) + startCol;
 
-                            fixed (float* rowN = &data[y * rows + x]) // const for all col elim
-                            fixed (float* rowNext = &data[(n + 1) * cols + x])
+                            // Wskaźnik na start danych w wektorze wyników
+                            float* slnSegment = slnPtr + startCol;
 
+                            // WOŁAMY ASM: "Policz iloczyn skalarny tych fragmentów"
+                            sum = NativeMethods.import_func.calculate_dot_product(rowSegment, slnSegment, count);
 
-                            {
-                                //zamiast 3 agr int -> array size 3 (r8 w asm)
-                                //if pivot ==0 => all row can be skiped
-                                if (pivot != 0)
-                                {
-                                    NativeMethods.GaussAsm.gauss_elimination(rowN, rowNext, factor);
-                                    ZeroUntilEps((n + 1) * cols + x, pivot);
-                                }
-
-                            }
+                            //float sumCs = 0;
+                            //for (int k = 0; k < count; k++)
+                            //{
+                            //    sumCs += rowSegment[k] * slnSegment[k];
+                            //}
+                            //sum = sumCs;
                         }
+
+
+
+                        // 2. Dokończ obliczenia w C# (to jest szybkie, bo tylko raz na wiersz)
+                        float b_i = mtrxPtr[i * cols + rows]; // Wyraz wolny (ostatnia kolumna)
+                        float pivot = mtrxPtr[i * cols + i];        // Pivot
+
+
+
+                        if (Math.Abs(pivot) > 1e-9f)
+                            slnVector[i] = (b_i - sum) / pivot;
+                        else
+                            slnVector[i] = 0; // Zabezpieczenie
+
                     }
-
-                    //czy lepiej ty raz zrobic zero eps dla mtrx  wiersza po zakonczeniu eliminacji
                 }
             }
 
         }
-
-        public void PrintMatrix()
-        {
-            for (int r = 0; r < rows; r++)
-            {
-                for (int c = 0; c < cols; c++)
-                {
-                    Console.Write(data[r * cols + c].ToString("F2") + " ");
-                }
-                Console.WriteLine();
-            }
-            Console.WriteLine();
-        }
+       
     }
 }
+

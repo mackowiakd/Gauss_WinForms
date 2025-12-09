@@ -5,52 +5,75 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Gauss_elim.NativeMethods{
-    public static class GaussAsm
+
+namespace Gauss_elim.NativeMethods
+{
+
+
+    public static class import_func
     {
-        [DllImport(@"C:\Users\Dominika\source\repos\Gauss_elim\x64\Debug\Gauss_asm.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static unsafe extern float gauss_elimination(float* rowN, float* rowNext, float pivElim);
+        // --- KONFIGURACJA ŚCIEŻEK ---
+        // Definiujemy stałe wewnątrz klasy. Dzięki temu są widoczne dla DllImport.
+
+#if DEBUG
+        // Ścieżki dla trybu DEBUG
+        private const string CppPath = @"C:\Users\Dominika\source\repos\JA_proj\Gauss_elim\x64\Debug\Gauss_c++.dll";
+        private const string AsmPath = @"C:\Users\Dominika\source\repos\JA_proj\Gauss_elim\x64\Debug\Gauss_asm.dll";
+#else
+        // Ścieżki dla trybu RELEASE
+        private const string CppPath = @"C:\Users\Dominika\source\repos\JA_proj\Gauss_elim\x64\Release\Gauss_c++.dll";
+        private const string AsmPath = @"C:\Users\Dominika\source\repos\JA_proj\Gauss_elim\x64\Release\Gauss_asm.dll";
+#endif
+
+        // --- IMPORTY Z ASEMBLERA (używamy stałej AsmPath) ---
+        [DllImport(AsmPath, CallingConvention = CallingConvention.Cdecl)]
+        public static unsafe extern float gauss_elimination(float* rowN, float* rowNext, float pivElim, float abs_pivot);
+
+        [DllImport(AsmPath, CallingConvention = CallingConvention.Cdecl)]
+        public static unsafe extern float calculate_dot_product(float* rowPtr, float* xPtr, int count);
+
+        // --- IMPORTY Z C++ (używamy stałej CppPath) ---
 
 
-    }
 
-    public static class GaussCpp
+        [DllImport(CppPath, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void back_substitution(IntPtr matrixPtr);
 
-    {
-        //public string DllPath = @"C:\Users\Dominika\source\repos\Gauss_elim\x64\Debug\Gauss_c++.dll";
-
-        [DllImport(@"C:\Users\Dominika\source\repos\Gauss_elim\x64\Debug\Gauss_c++.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void start_gauss(string input_path, string output_path);
-
-        [DllImport(@"C:\Users\Dominika\source\repos\Gauss_elim\x64\Debug\Gauss_c++.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(CppPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr create_matrix(string inputPath);
 
-        [DllImport(@"C:\Users\Dominika\source\repos\Gauss_elim\x64\Debug\Gauss_c++.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(CppPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern void destroy_matrix(IntPtr matrixPtr);
 
-        [DllImport(@"C:\Users\Dominika\source\repos\Gauss_elim\x64\Debug\Gauss_c++.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(CppPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern void gauss_step(IntPtr matrixPtr, int nRow, int nCol);
 
-        [DllImport(@"C:\Users\Dominika\source\repos\Gauss_elim\x64\Debug\Gauss_c++.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(CppPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern void save_matrix(IntPtr matrixPtr, string outputPath);
 
+        [DllImport(CppPath, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void save_result(IntPtr matrixPtr, string outputPath);
 
-        [DllImport(@"C:\Users\Dominika\source\repos\Gauss_elim\x64\Debug\Gauss_c++.dll", CallingConvention = CallingConvention.Cdecl)]
+
+        [DllImport(CppPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern void apply_pivot(IntPtr matrixPtr, int currentRow);
 
-        [DllImport(@"C:\Users\Dominika\source\repos\Gauss_elim\x64\Debug\Gauss_c++.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(CppPath, CallingConvention = CallingConvention.Cdecl)]
+        public static extern float get_data_at(IntPtr matrixPtr, int r, int c);
+
+        [DllImport(CppPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern int get_rows(IntPtr matrixPtr);
 
-        [DllImport(@"C:\Users\Dominika\source\repos\Gauss_elim\x64\Debug\Gauss_c++.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(CppPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern int get_cols(IntPtr matrixPtr);
 
-        [DllImport(@"C:\Users\Dominika\source\repos\Gauss_elim\x64\Debug\Gauss_c++.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(CppPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern void zero_until_eps(IntPtr matrixPtr, int startRow, int startCol);
 
-        [DllImport(@"C:\Users\Dominika\source\repos\Gauss_elim\x64\Debug\Gauss_c++.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(CppPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern float get_eps_abs(IntPtr matrixPtr);
 
-        [DllImport(@"C:\Users\Dominika\source\repos\Gauss_elim\x64\Debug\Gauss_c++.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(CppPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern float get_eps_rel(IntPtr matrixPtr);
     }
 }

@@ -4,11 +4,6 @@
 
 extern "C" {
 
-    void start_gauss(const char* input_path, const char* output_path) {
-        MatrixHandler_cpp matrix(input_path);
-        matrix.GaussElimination(); //to do threading
-        matrix.SaveMatrixToFile(output_path);
-    } //do zmiany na pojedyncze funkcje
 
     __declspec(dllexport)
         MatrixHandler_cpp* create_matrix(const char* path) {
@@ -32,9 +27,13 @@ extern "C" {
         return ptr->cols;
     };
     __declspec(dllexport)
-		float get_eps_abs(MatrixHandler_cpp* ptr) {     
+        float get_data_at(MatrixHandler_cpp* ptr, int r, int c) {
+        return ptr->at(r, c);
+    };
+    __declspec(dllexport)
+        float get_eps_abs(MatrixHandler_cpp* ptr) {
         return ptr->EPS_ABS;
-	};
+    };
     __declspec(dllexport)
         float get_eps_rel(MatrixHandler_cpp* ptr) {
         return ptr->EPS_REL;
@@ -46,16 +45,21 @@ extern "C" {
 
     __declspec(dllexport)
         void gauss_step(MatrixHandler_cpp* ptr, int pivotRow, int y) {
-       
+
         ptr->GaussEliminationStep(pivotRow, y);
-    
 
     }
-
-
+    __declspec(dllexport)
+        void back_substitution(MatrixHandler_cpp* ptr) {
+        ptr->BackSubstitution();
+    }
     __declspec(dllexport)
         void save_matrix(MatrixHandler_cpp* ptr, const char* path) {
         ptr->SaveMatrixToFile(path);
+    }
+    __declspec(dllexport)
+        void save_result(MatrixHandler_cpp* ptr, const char* path) {
+        ptr->SaveSlnMtrx(path);
     }
 
 };

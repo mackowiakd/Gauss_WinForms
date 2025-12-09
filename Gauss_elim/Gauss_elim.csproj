@@ -85,7 +85,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MatrixGenerator.cs" />
     <Compile Include="MatrixHandler.cs" />
     <Compile Include="import_functions.cs" />
     <Compile Include="ParallelExecutor.cs" />
