@@ -11,7 +11,7 @@ namespace Gauss_elim.threading
     public class ParallelExecutor
     {
         int maxThreads = Environment.ProcessorCount;
-        public long elapsedTime { get; set; }
+        public double elapsedTime { get; set; }
 
         /* 
          * fukcja bedzie wywolywac rownolege eliminacje gaussa dla CPP lub ASM
@@ -22,7 +22,7 @@ namespace Gauss_elim.threading
 
 
         }
-        public long run_asm(string input1, int thread_count, string outp, string res)
+        public double run_asm(string input1, int thread_count, string outp, string res)
         {
             Stopwatch sw = Stopwatch.StartNew();
             asm_parallel matrixAsm = new asm_parallel(input1, thread_count, outp, res);
@@ -30,11 +30,11 @@ namespace Gauss_elim.threading
             sw.Stop();
             matrixAsm.Dispose();
             //elapsedTime = sw.ElapsedMilliseconds;
-            return sw.ElapsedMilliseconds;
+            return sw.Elapsed.TotalMilliseconds;
             //Console.WriteLine($"Czas wykonania równoległej eliminacji Gaussa (ASM): {sw.ElapsedMilliseconds} ms");
 
         }
-        public long run_cpp(string input1, int thread_count, string outp, string res)
+        public double run_cpp(string input1, int thread_count, string outp, string res)
         {
             Stopwatch sw = Stopwatch.StartNew();
             Matrix_Cpp_Parallel matrixCpp = new Matrix_Cpp_Parallel(input1, thread_count, outp, res);
@@ -42,7 +42,7 @@ namespace Gauss_elim.threading
             sw.Stop();
             matrixCpp.Dispose();
             // elapsedTime = sw.ElapsedMilliseconds;
-            return sw.ElapsedMilliseconds;
+            return sw.Elapsed.TotalMilliseconds;
             //Console.WriteLine($"Czas wykonania równoległej eliminacji Gaussa (CPP): {sw.ElapsedMilliseconds} ms");
         }
     }

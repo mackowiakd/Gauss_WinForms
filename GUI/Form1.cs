@@ -17,23 +17,55 @@ using TextBox = System.Windows.Forms.TextBox;
 
 
 
+
 namespace GUI
 {
     public partial class Form1 : Form
     {
         private string inputPath = "";
-        private string outputPath = "GUI_outp.txt";
+        private string outputPath = "GUI_outp";
         private bool useAsm = false;
         private bool useCpp = false;
         private int threadCount = 1;
         // Ścieżka bazowa do folderu z testami (obok pliku .exe)
         private string baseTestDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "test_data");
+       
+        HelpProvider hp = new HelpProvider();
         public Form1()
         {
             InitializeComponent();
           
             SetupPresetData(); // Konfiguracja listy rozwijanej
-       
+
+            // Dla pola wejściowego (Długi opis formatu)
+            string formatInfo = "FORMAT PLIKU:\n" +
+                                "1. Pierwsza linia: Rozmiar N (np. 1250)\n" +
+                                "2. Kolejne linie: Macierz N x (N+1)\n" +
+                                "3. Wartości oddzielone spacjami.";
+
+            hp.SetHelpString(this.textBox1, formatInfo);
+            hp.SetShowHelp(this.textBox1, true);
+
+            // Konfiguracja (opcjonalna)
+            // Pokaż podpowiedź, gdy kursor jest w polu
+            textBox1.Enter += (s, e) => { lblHint.Visible = true; };
+
+            // Ukryj, gdy wyjdziesz z pola
+            textBox1.Leave += (s, e) => { lblHint.Visible = false; };
+
+            // 1. Pobierz liczbę rdzeni logicznych systemu
+            int systemCores = Environment.ProcessorCount;
+
+            // 2. Ustaw tę wartość na suwaku (NumericUpDown)
+            // Zakładam, że Twoja kontrolka nazywa się 'thread_count'
+            thread_count.Value = systemCores;
+
+            // 3. Zaktualizuj też zmienną globalną (dla pewności)
+            threadCount = systemCores;
+
+            // Opcjonalnie: Ustawienie podpowiedzi dynamicznie
+            hp.SetHelpString(thread_count, $"Twój system posiada {systemCores} wątków logicznych.");
+
         }
         // --- CZĘŚĆ 1: Gotowe zestawy danych (S, M, L) ---
         private void SetupPresetData()
@@ -44,6 +76,11 @@ namespace GUI
             cbTestData.Items.Add("Mały (S) - N=50");
             cbTestData.Items.Add("Średni (M) - N=250");
             cbTestData.Items.Add("Duży (L) - N=1250");
+            // --- NOWE NIESTANDARDOWE ---
+            cbTestData.Items.Add("Niestandardowy - N=13");
+            cbTestData.Items.Add("Niestandardowy - N=48"); // Index 4
+            cbTestData.Items.Add("Niestandardowy - N=217"); // Index 5
+           
             cbTestData.SelectedIndex = 0;
         }
 
@@ -83,14 +120,41 @@ namespace GUI
             // 1. Walidacja
             if (!ValidateRunConditions()) return;
 
-            // --- PRZYGOTOWANIE ŚCIEŻEK (TWORZENIE 4 ARGUMENTÓW) ---
+            // --- PRZYGOTOWANIE ŚCIEŻEK  ---
+          
+
+            // A. Ustalanie katalogu wyjściowego
+            string outputDir;
+
+            if (string.IsNullOrWhiteSpace(outputPath))
+            {
+                // Jeśli puste -> domyślny folder "GUI_outp" obok pliku .exe
+                outputDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GUI_outp");
+            }
+            else
+            {
+                // Jeśli wpisano tekst -> traktujemy go BEZWZGLĘDNIE jako katalog
+                outputDir = outputPath;
+            }
+
+            // B. Tworzenie katalogu (jeśli nie istnieje)
+            try
+            {
+                if (!Directory.Exists(outputDir))
+                {
+                    Directory.CreateDirectory(outputDir);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Nie udało się utworzyć katalogu:\n{outputDir}\n\nBłąd: {ex.Message}", "Błąd IO", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // C. Generowanie nazw plików (Automatyczne)
             string inputFileName = Path.GetFileNameWithoutExtension(inputPath);
 
-            // Jeśli output pusty, bierzemy folder pliku wejściowego
-            string outputDir = string.IsNullOrWhiteSpace(outputPath)
-                ? Path.GetDirectoryName(inputPath)
-                : outputPath;
-
+          
             // Generujemy pełne ścieżki dla plików wyjściowych
             string file_outp = Path.Combine(outputDir, $"{inputFileName}_stepped.txt");
             string file_res = Path.Combine(outputDir, $"{inputFileName}_result.txt");
@@ -109,7 +173,7 @@ namespace GUI
 
             // Tu używamy pełnej ścieżki do klasy, żeby ominąć problemy z usingami
             Gauss_elim.threading.ParallelExecutor P_exe = new Gauss_elim.threading.ParallelExecutor();
-            long executionTime = 0;
+            double executionTime = 0;
 
             try
             {
@@ -130,6 +194,9 @@ namespace GUI
 
                 // 4. SUKCES
                 SetExecutionTime(executionTime);
+                // --- ZMIANA TUTAJ: ZATRZYMANIE PASKA ---
+                progressBar1.Style = ProgressBarStyle.Blocks; // Zmień styl na "klocki" (statyczny)
+                progressBar1.Value = 100;
                 lblStatus.Text = "Gotowe!";
                 lblStatus.ForeColor = System.Drawing.Color.Green;
 
@@ -160,6 +227,9 @@ namespace GUI
                 case 1: fileName = "matrix50x50.txt"; break;
                 case 2: fileName = "matrix250x250.txt"; break;
                 case 3: fileName = "matrix1250x1250.txt"; break;
+                case 4: fileName = "matrix13x13.txt"; break;
+                case 5: fileName = "matrix48x48.txt"; break;
+                case 6: fileName = "matrix217x217.txt"; break;
             }
 
             // Automatycznie ustawiamy ścieżkę w textBox1
@@ -251,22 +321,39 @@ namespace GUI
 
         }
 
-        public void SetExecutionTime(long time)
+        public void SetExecutionTime(double time)
         {
             time_exe.Text = $"{time} [ms]";
         }
 
         private void ASM_button_CheckedChanged(object sender, EventArgs e)
         {
-            //powinna byc typu bool aby sprawdzac czy jest zaznaczona
-            useAsm = ASM_button.Checked;
+            // Jeśli zaznaczono ASM, to automatycznie ODZNACZ C++
+            if (ASM_button.Checked)
+            {
+                CPP_button.Checked = false;
+                useAsm = true;
+                useCpp = false;
+            }
+            else
+            {
+                useAsm = false;
+            }
         }
-
 
         private void CPP_button_CheckedChanged(object sender, EventArgs e)
         {
-            //powinna byc typu bool aby sprawdzac czy jest zaznaczona
-            useCpp = CPP_button.Checked;
+            // Jeśli zaznaczono C++, to automatycznie ODZNACZ ASM
+            if (CPP_button.Checked)
+            {
+                ASM_button.Checked = false;
+                useCpp = true;
+                useAsm = false;
+            }
+            else
+            {
+                useCpp = false;
+            }
         }
 
 
@@ -302,6 +389,16 @@ namespace GUI
         }
 
         private void lblStatus_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void toolTip1_Popup(object sender, PopupEventArgs e)
+        {
+
+        }
+
+        private void label6_Click(object sender, EventArgs e)
         {
 
         }

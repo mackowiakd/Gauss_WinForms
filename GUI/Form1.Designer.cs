@@ -44,6 +44,7 @@
             this.label5 = new System.Windows.Forms.Label();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.lblStatus = new System.Windows.Forms.Label();
+            this.lblHint = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.thread_count)).BeginInit();
             this.SuspendLayout();
             // 
@@ -75,14 +76,14 @@
             this.Run_button.Name = "Run_button";
             this.Run_button.Size = new System.Drawing.Size(75, 23);
             this.Run_button.TabIndex = 2;
-            this.Run_button.Text = "Run";
+            this.Run_button.Text = "Start";
             this.Run_button.UseVisualStyleBackColor = true;
             this.Run_button.Click += new System.EventHandler(this.Run_button_Click);
             // 
             // textBox1
             // 
             this.textBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.textBox1.Location = new System.Drawing.Point(55, 135);
+            this.textBox1.Location = new System.Drawing.Point(55, 118);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(244, 28);
             this.textBox1.TabIndex = 3;
@@ -92,7 +93,7 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.label1.Location = new System.Drawing.Point(52, 112);
+            this.label1.Location = new System.Drawing.Point(55, 97);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(97, 18);
             this.label1.TabIndex = 4;
@@ -146,7 +147,7 @@
             // time
             // 
             this.time.AutoSize = true;
-            this.time.Location = new System.Drawing.Point(41, 389);
+            this.time.Location = new System.Drawing.Point(47, 386);
             this.time.Name = "time";
             this.time.Size = new System.Drawing.Size(107, 16);
             this.time.TabIndex = 8;
@@ -156,7 +157,7 @@
             // textBox2
             // 
             this.textBox2.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.textBox2.Location = new System.Drawing.Point(361, 135);
+            this.textBox2.Location = new System.Drawing.Point(361, 118);
             this.textBox2.Name = "textBox2";
             this.textBox2.Size = new System.Drawing.Size(216, 28);
             this.textBox2.TabIndex = 9;
@@ -166,11 +167,11 @@
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.label3.Location = new System.Drawing.Point(291, 112);
+            this.label3.Location = new System.Drawing.Point(358, 97);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(107, 18);
+            this.label3.Size = new System.Drawing.Size(169, 18);
             this.label3.TabIndex = 10;
-            this.label3.Text = "output file path ";
+            this.label3.Text = "output file path (optional)";
             this.label3.Click += new System.EventHandler(this.label3_Click);
             // 
             // label4
@@ -195,7 +196,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(55, 203);
+            this.label5.Location = new System.Drawing.Point(55, 206);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(89, 16);
             this.label5.TabIndex = 13;
@@ -216,16 +217,29 @@
             this.lblStatus.AutoSize = true;
             this.lblStatus.Location = new System.Drawing.Point(255, 9);
             this.lblStatus.Name = "lblStatus";
-            this.lblStatus.Size = new System.Drawing.Size(108, 16);
+            this.lblStatus.Size = new System.Drawing.Size(91, 16);
             this.lblStatus.TabIndex = 15;
-            this.lblStatus.Text = "Czekam na dane";
+            this.lblStatus.Text = "wating for start";
             this.lblStatus.Click += new System.EventHandler(this.lblStatus_Click);
+            // 
+            // lblHint
+            // 
+            this.lblHint.AutoSize = true;
+            this.lblHint.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.lblHint.Location = new System.Drawing.Point(59, 149);
+            this.lblHint.Name = "lblHint";
+            this.lblHint.Size = new System.Drawing.Size(142, 32);
+            this.lblHint.TabIndex = 16;
+            this.lblHint.Text = "Format: Pełna ścieżka\r\nnp. C:\\Users\\test.txt\r\n";
+            this.lblHint.Visible = false;
+            this.lblHint.Click += new System.EventHandler(this.label6_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(623, 450);
+            this.Controls.Add(this.lblHint);
             this.Controls.Add(this.lblStatus);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.label5);
@@ -269,6 +283,7 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.Label lblStatus;
+        private System.Windows.Forms.Label lblHint;
     }
 }
 
