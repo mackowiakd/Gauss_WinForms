@@ -26,6 +26,7 @@ namespace GUI
         private string outputPath = "GUI_outp";
         private bool useAsm = false;
         private bool useCpp = false;
+       
         private int threadCount = 1;
         // Ścieżka bazowa do folderu z testami (obok pliku .exe)
         private string baseTestDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "test_data");
@@ -78,8 +79,9 @@ namespace GUI
             cbTestData.Items.Add("Duży (L) - N=1250");
             // --- NOWE NIESTANDARDOWE ---
             cbTestData.Items.Add("Niestandardowy - N=13");
+            cbTestData.Items.Add("Niestandardowy - N=29"); // Index 5
             cbTestData.Items.Add("Niestandardowy - N=48"); // Index 4
-            cbTestData.Items.Add("Niestandardowy - N=217"); // Index 5
+            cbTestData.Items.Add("Niestandardowy - N=217"); // Index 6
            
             cbTestData.SelectedIndex = 0;
         }
@@ -151,13 +153,23 @@ namespace GUI
                 return;
             }
 
+          
+
             // C. Generowanie nazw plików (Automatyczne)
             string inputFileName = Path.GetFileNameWithoutExtension(inputPath);
 
-          
-            // Generujemy pełne ścieżki dla plików wyjściowych
-            string file_outp = Path.Combine(outputDir, $"{inputFileName}_stepped.txt");
-            string file_res = Path.Combine(outputDir, $"{inputFileName}_result.txt");
+            // --- POPRAWKA: Definiujemy suffix LOKALNIE, tu i teraz ---
+            // Używamy prostego warunku: Jeśli useAsm to "ASM", w przeciwnym razie "CPP"
+            string currentSuffix = useAsm ? "ASM" : "CPP";
+
+            // Generujemy pełne ścieżki
+            // Zwróć uwagę, że używam zmiennej 'currentSuffix'
+            string file_outp = Path.Combine(outputDir, $"{inputFileName}_stepped_{currentSuffix}.txt");
+            string file_res = Path.Combine(outputDir, $"{inputFileName}_result_{currentSuffix}.txt");
+
+
+            
+
 
 
             // 2. BLOKADA UI i PASEK POSTĘPU
@@ -228,8 +240,9 @@ namespace GUI
                 case 2: fileName = "matrix250x250.txt"; break;
                 case 3: fileName = "matrix1250x1250.txt"; break;
                 case 4: fileName = "matrix13x13.txt"; break;
-                case 5: fileName = "matrix48x48.txt"; break;
-                case 6: fileName = "matrix217x217.txt"; break;
+                case 5: fileName = "matrix29x29.txt"; break;
+                case 6: fileName = "matrix48x48.txt"; break;
+                case 7: fileName = "matrix217x217.txt"; break;
             }
 
             // Automatycznie ustawiamy ścieżkę w textBox1

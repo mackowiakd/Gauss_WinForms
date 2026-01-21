@@ -17,12 +17,12 @@ namespace Gauss_elim.NativeMethods
 
 #if DEBUG
         // Ścieżki dla trybu DEBUG
-        private const string CppPath = @"C:\Users\Dominika\source\repos\JA_proj\Gauss_elim\x64\Debug\Gauss_c++.dll";
-        private const string AsmPath = @"C:\Users\Dominika\source\repos\JA_proj\Gauss_elim\x64\Debug\Gauss_asm.dll";
+        private const string CppPath = @"C:\Users\Dominika\source\repos\JA_proj\WinFormsApp1\x64\Debug\Gauss_c++.dll";
+        private const string AsmPath = @"C:\Users\Dominika\source\repos\JA_proj\WinFormsApp1\x64\Debug\Gauss_asm.dll";
 #else
         // Ścieżki dla trybu RELEASE
-        private const string CppPath = @"C:\Users\Dominika\source\repos\JA_proj\Gauss_elim\x64\Release\Gauss_c++.dll";
-        private const string AsmPath = @"C:\Users\Dominika\source\repos\JA_proj\Gauss_elim\x64\Release\Gauss_asm.dll";
+        private const string CppPath = @"C:\Users\Dominika\source\repos\JA_proj\WinFormsApp1\x64\Release\Gauss_c++.dll";
+        private const string AsmPath = @"C:\Users\Dominika\source\repos\JA_proj\WinFormsApp1\x64\Release\Gauss_asm.dll";
 #endif
 
         // --- IMPORTY Z ASEMBLERA (używamy stałej AsmPath) ---

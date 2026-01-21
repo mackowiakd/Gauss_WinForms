@@ -63,15 +63,18 @@ namespace Gauss_elim.MatrixHandler_ASM
 
         public unsafe void SaveMatrixToFile(string output)
         {
+            float temp_round;
             using (StreamWriter writer = new StreamWriter(output, false, Encoding.UTF8))
             {
+               
                 for (int r = 0; r < rows; r++)
                 {
                     string line = "";
                     for (int c = 0; c < oldCols; c++)
                     {
+                        temp_round = (float)Math.Round(data[r * cols + c], 4);
                         // dopisujemy element z kropką jako separatorem dziesiętnym
-                        line += data[r * cols + c].ToString();
+                        line += temp_round.ToString();
                         if (c < oldCols - 1)
                             line += " "; // separator między kolumnami
                     }
@@ -83,6 +86,8 @@ namespace Gauss_elim.MatrixHandler_ASM
         }
         public void SaveSlnMtrx(string path)
         {
+            float temp_round;
+
             using (StreamWriter writer = new StreamWriter(path, false, Encoding.UTF8))
             {
 
@@ -90,8 +95,9 @@ namespace Gauss_elim.MatrixHandler_ASM
                 string line = "";
                 for (int r = 0; r < rows; r++)
                 {
+                    temp_round = (float)Math.Round(slnVector[r], 4);
                     // dopisujemy element z kropką jako separatorem dziesiętnym
-                    line += slnVector[r].ToString();
+                    line += temp_round.ToString();
                     line += " "; // separator między kolumnami
 
                 }
@@ -198,7 +204,6 @@ namespace Gauss_elim.MatrixHandler_ASM
             float elim = data[(n + 1) * cols + (y)];  // elim
             float factor = elim / pivot; // 3. Oblicz współczynnik JEDEN RAZ
 
-
             //dzielenie wiersza na czesci po 8 float 
             for (int x = 0; x < cols; x += ymm)
             {
@@ -212,11 +217,9 @@ namespace Gauss_elim.MatrixHandler_ASM
 
                     {
 
-                        //if (data[y * cols + (y)] > EPS_ABS{ spr w petli glownej
                         NativeMethods.import_func.gauss_elimination(rowN, rowNext, factor, Math.Abs(pivot));
 
 
-                        //}
 
                     }
                 }

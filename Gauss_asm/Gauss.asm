@@ -103,7 +103,7 @@ calculate_dot_product proc
     ; Zerujemy akumulator sumy (YMM0)
     vxorps ymm0, ymm0, ymm0 
 
-    ; SprawdŸ, czy mamy chocia¿ 8 elementów do przetworzenia
+    ; Czy mamy chocia¿ 8 elementów do przetworzenia
     cmp r8, 8
     jl Scalar_Loop ; Jeœli mniej ni¿ 8, skocz do pêtli skalarnej
 
