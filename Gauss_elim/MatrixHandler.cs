@@ -95,10 +95,17 @@ namespace Gauss_elim.MatrixHandler_ASM
                 string line = "";
                 for (int r = 0; r < rows; r++)
                 {
-                    temp_round = (float)Math.Round(slnVector[r], 4);
-                    // dopisujemy element z kropką jako separatorem dziesiętnym
-                    line += temp_round.ToString();
-                    line += " "; // separator między kolumnami
+                    // 1. "0.0000" -> Wymusza 4 miejsca (robi też zaokrąglenie, więc Math.Round niepotrzebne)
+                    //    Daje np. "5,1000" (z przecinkiem na polskim Windowsie)
+                    string val = slnVector[r].ToString("0.0000");
+
+                    // 2. Zamieniamy przecinek na kropkę (bezpiecznie, bez CultureInfo)
+                    val = val.Replace(',', '.');
+
+                    // 3. Piszemy OD RAZU do pliku.
+                    //    Unikamy 'line +=', co naprawi problem "wykrzaczania" przy dużych danych.
+                    writer.Write(val);
+                    writer.Write(" ");
 
                 }
                 writer.WriteLine(line);
