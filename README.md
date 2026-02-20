@@ -1,4 +1,5 @@
 # Parallel Gauss Elimination Solver 
+> 🎓 **Academic Project**: This application was developed as the final project for the *Assembly Languages* course during the 5th semester of Computer Science at the **Silesian University of Technology** (Politechnika Śląska).
 
 A high-performance desktop application for solving systems of linear equations using the Gauss Elimination method. This project demonstrates the integration of high-level UI, multithreading, and low-level hardware optimizations (SIMD).
 
