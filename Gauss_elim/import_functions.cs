@@ -20,9 +20,9 @@ namespace Gauss_elim.NativeMethods
         private const string CppPath = @"C:\Users\Dominika\source\repos\JA_proj\WinFormsApp1\x64\Debug\Gauss_c++.dll";
         private const string AsmPath = @"C:\Users\Dominika\source\repos\JA_proj\WinFormsApp1\x64\Debug\Gauss_asm.dll";
 #else
-        // Ścieżki dla trybu RELEASE
-        private const string CppPath = @"C:\Users\Dominika\source\repos\JA_proj\WinFormsApp1\x64\Release\Gauss_c++.dll";
-        private const string AsmPath = @"C:\Users\Dominika\source\repos\JA_proj\WinFormsApp1\x64\Release\Gauss_asm.dll";
+        // Do paczki RELEASE używamy ścieżek względnych (bo pliki będą leżeć obok siebie w ZIPie)
+        private const string CppPath = "Gauss_c++.dll";
+        private const string AsmPath = "Gauss_asm.dll";
 #endif
 
         // --- IMPORTY Z ASEMBLERA (używamy stałej AsmPath) ---
